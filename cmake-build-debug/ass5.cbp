@@ -78,7 +78,13 @@
 				</MakeCommands>
 			</Target>
 		</Build>
+		<Unit filename="/home/crbaniak/Desktop/Link to fall18/4760_OS/code/ass5/header.h">
+			<Option target="ass5"/>
+		</Unit>
 		<Unit filename="/home/crbaniak/Desktop/Link to fall18/4760_OS/code/ass5/main.c">
+			<Option target="ass5"/>
+		</Unit>
+		<Unit filename="/home/crbaniak/Desktop/Link to fall18/4760_OS/code/ass5/user.c">
 			<Option target="ass5"/>
 		</Unit>
 		<Unit filename="/home/crbaniak/Desktop/Link to fall18/4760_OS/code/ass5/CMakeLists.txt">

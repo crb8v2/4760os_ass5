@@ -3,4 +3,4 @@ project(ass5 C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(ass5 main.c)
+add_executable(ass5 main.c user.c header.h)

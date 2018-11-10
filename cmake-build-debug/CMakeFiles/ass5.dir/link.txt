@@ -1,1 +1,1 @@
-/usr/bin/cc -g   CMakeFiles/ass5.dir/main.c.o  -o ass5 
+/usr/bin/cc -g   CMakeFiles/ass5.dir/main.c.o CMakeFiles/ass5.dir/user.c.o  -o ass5 
