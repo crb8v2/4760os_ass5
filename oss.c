@@ -43,14 +43,13 @@ void sigint(int a) {
     // kill open forks
 
     // write to log
+    writeResultsToLog();
 
     // clean shared memory
     shmdt(sysClockshmPtr);
     shmctl(sysClockshmid, IPC_RMID, NULL);
     shmdt(RDPtr);
     shmctl(RDshmid, IPC_RMID, NULL);
-
-    writeResultsToLog();
 
     printf("^C caught\n");
     exit(0);
@@ -75,8 +74,39 @@ static void ALARMhandler() {
 
 // if process completes, write data to log
 void writeResultsToLog(){
-            FILE *fp = fopen("log.txt", "a+");
-            fprintf(fp, "writing to log\n");
+
+    FILE *fp = fopen("log.txt", "a+");
+    fprintf(fp, "writing to log\n");
+    int tester = 1;
+
+    int i, j;
+    fprintf(fp, "     ");
+    for(j = 0; j < 20; j++){
+        fprintf(fp, "R%02i ", j);
+    }
+
+    fprintf(fp, "\n");
+
+    for(i = 0; i < 18; i++){
+        fprintf(fp, "P%02i:", i);
+        for(j = 0; j < 20; j++){
+            fprintf(fp, "%4d", RDPtr->allocated[1][1]);
+            totalLines++;
+        }
+        fprintf(fp, "\n");
+    }
+
+//    fprintf(stderr, "Proc: ");
+//    for(i = 0; i < 18; i++){
+//        fprintf(stderr, "%i ", (*shared).pidArr[i]);
+//    }
+//
+//    fprintf(stderr, "\nblocked: ");
+//    for(i = 0; i < 18; i++){
+//        fprintf(stderr, "%i ", blocked[i]);
+//    }
+    fprintf(stderr, "\n");
+
             fclose(fp);
 }
 

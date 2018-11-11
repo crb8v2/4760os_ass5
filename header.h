@@ -43,11 +43,12 @@ typedef struct {
 
 //struct for rescource descriptor
 typedef struct {
-    int allocated;
-    int max;
-    int request;
+    int rescources[20];
+    int max[18][20];
+    int allocated[18][20];
+    int request[18][20];
 
-} rescourceDescriptor_t[20];
+} rescourceDescriptor_t;
 
 // ##### GLOBALS #####
 // globals for accessing pointers to shared memory
@@ -55,6 +56,8 @@ int sysClockshmid; //holds the shared memory segment id
 systemClock_t *sysClockshmPtr; //points to the data structure
 int RDshmid;
 rescourceDescriptor_t *RDPtr;
+
+int totalLines = 0; // total lines in log file
 
 
 // allocates shared mem
