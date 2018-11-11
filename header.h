@@ -43,11 +43,13 @@ typedef struct {
 
 //struct for rescource descriptor
 typedef struct {
-    int thing;
+    int allocated;
+    int max;
+    int request;
 
 } rescourceDescriptor_t[20];
 
-
+// ##### GLOBALS #####
 // globals for accessing pointers to shared memory
 int sysClockshmid; //holds the shared memory segment id
 systemClock_t *sysClockshmPtr; //points to the data structure
@@ -83,6 +85,12 @@ void sharedMemoryConfig() {
         perror("sysClock shmat error in oss\n");
         exit(errno);
     }
+
+    //tests for shared mem
+//    sysClockshmPtr->nanoseconds = 3;
+//    printf("%d\n", sysClockshmPtr->nanoseconds);
+//    sysClockshmPtr->nanoseconds = 0;
+//    sysClockshmPtr->seconds = 0;
 
 }
 

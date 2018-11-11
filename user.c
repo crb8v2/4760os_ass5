@@ -9,5 +9,8 @@ int main(int argc, char* argv[]){
     // shared memory config
     sharedMemoryConfig();
 
+    // clean shared mem
+    shmdt(sysClockshmPtr);
+    shmdt(RDPtr);
 }
 

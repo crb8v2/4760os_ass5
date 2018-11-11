@@ -7,6 +7,7 @@
 void sigint(int);
 static void ALARMhandler();
 void writeResultsToLog();
+void ossClock();
 
 int main(int argc, char* argv[]) {
 
@@ -22,11 +23,11 @@ int main(int argc, char* argv[]) {
     // shared memory config
     sharedMemoryConfig();
 
-    //####################
+
     //####START CLOCK#####
-    //####################
-    // os clock
     while(clockStop == 0){
+        ossClock();
+        printf("time seconds:nanoseconds -> %d:%d\n", sysClockshmPtr->seconds, sysClockshmPtr->nanoseconds);
 
     }
 
@@ -77,4 +78,22 @@ void writeResultsToLog(){
             FILE *fp = fopen("log.txt", "a+");
             fprintf(fp, "writing to log\n");
             fclose(fp);
+}
+
+void ossClock(){
+
+    int clockIncrement = 100000; // increment clock by 100,000 nanoseconds (1 microsecond)
+    int rollover;
+
+    if ((sysClockshmPtr->nanoseconds + clockIncrement) > 999999999){
+        rollover = (sysClockshmPtr->nanoseconds + clockIncrement) - 999999999;
+        sysClockshmPtr->seconds += 1;
+        sysClockshmPtr->nanoseconds = rollover;
+    } else {
+        sysClockshmPtr->nanoseconds += clockIncrement;
+    }
+
+    //sleep here for easy managing
+//    usleep(200000);
+
 }
