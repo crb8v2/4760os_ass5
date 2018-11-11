@@ -25,6 +25,7 @@
 
 //shared mem keys, probs not secure in a header, but its here to stay
 #define CLOCK_SHMKEY 123123
+#define RD_SHMKEY 123124
 
 //#################################
 //##### SHARED MEMORY SEGMENT #####
@@ -34,16 +35,24 @@
 //      rescources
 //      clock
 
-
+// struct for time
 typedef struct {
     unsigned int seconds;
     unsigned int nanoseconds;
 } systemClock_t;
 
+//struct for rescource descriptor
+typedef struct {
+    int thing;
+
+} rescourceDescriptor_t[20];
+
 
 // globals for accessing pointers to shared memory
 int sysClockshmid; //holds the shared memory segment id
 systemClock_t *sysClockshmPtr; //points to the data structure
+int RDshmid;
+rescourceDescriptor_t *RDPtr;
 
 
 // allocates shared mem
@@ -58,6 +67,19 @@ void sharedMemoryConfig() {
     }
     sysClockshmPtr = shmat(sysClockshmid, NULL, 0);
     if(sysClockshmPtr < 0){
+        perror("sysClock shmat error in oss\n");
+        exit(errno);
+    }
+
+    //shared mem for Rescource Descriptor
+    RDshmid = shmget(RD_SHMKEY, sizeof(rescourceDescriptor_t), IPC_CREAT|0777);
+    if(RDshmid < 0)
+    {
+        perror("RD shmget error in master \n");
+        exit(errno);
+    }
+    RDPtr = shmat(RDshmid, NULL, 0);
+    if(RDPtr < 0){
         perror("sysClock shmat error in oss\n");
         exit(errno);
     }
