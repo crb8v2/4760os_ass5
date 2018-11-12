@@ -6,31 +6,32 @@
 
 void sigint(int);
 static void ALARMhandler();
+void initTables();
 void writeResultsToLog();
+
 void ossClock();
+
 
 int main(int argc, char* argv[]) {
 
     int clockStop = 0;
 
-    //signal handling config - ctrl-c
+    //signal handling config - ctrl-c and timeout
     signal(SIGINT, sigint);
-
-    //alarm times out if forks all do not return in 2 seconds
     signal(SIGALRM, ALARMhandler);
     alarm(4);
 
     // shared memory config
     sharedMemoryConfig();
 
+    // RANDOM INITS FOR TABLE
+    initTables();
 
     //####START CLOCK#####
     while(clockStop == 0){
         ossClock();
-        printf("time seconds:nanoseconds -> %d:%d\n", sysClockshmPtr->seconds, sysClockshmPtr->nanoseconds);
-
+//        printf("time seconds:nanoseconds -> %d:%d\n", sysClockshmPtr->seconds, sysClockshmPtr->nanoseconds);
     }
-
 
     // clean shared memory
     shmdt(sysClockshmPtr);
@@ -72,42 +73,71 @@ static void ALARMhandler() {
     exit(EXIT_SUCCESS);
 }
 
-// if process completes, write data to log
+// if ctrl-c, write data to log
 void writeResultsToLog(){
 
     FILE *fp = fopen("log.txt", "a+");
-    fprintf(fp, "writing to log\n");
-    int tester = 1;
 
-    int i, j;
+    int ii, jj;
+
+    // init max table
+    fprintf(fp, "##### MAX TABLE #####\n");
     fprintf(fp, "     ");
-    for(j = 0; j < 20; j++){
-        fprintf(fp, "R%02i ", j);
+    for(jj = 0; jj < 20; jj++){
+        fprintf(fp, "R%02i ", jj);
     }
 
     fprintf(fp, "\n");
 
-    for(i = 0; i < 18; i++){
-        fprintf(fp, "P%02i:", i);
-        for(j = 0; j < 20; j++){
-            fprintf(fp, "%4d", RDPtr->allocated[1][1]);
+    for(ii = 0; ii < 18; ii++){
+        fprintf(fp, "P%02i:", ii);
+        for(jj = 0; jj < 20; jj++){
+            fprintf(fp, "%4d", RDPtr->max[ii][jj]);
             totalLines++;
         }
         fprintf(fp, "\n");
     }
 
-//    fprintf(stderr, "Proc: ");
-//    for(i = 0; i < 18; i++){
-//        fprintf(stderr, "%i ", (*shared).pidArr[i]);
-//    }
-//
-//    fprintf(stderr, "\nblocked: ");
-//    for(i = 0; i < 18; i++){
-//        fprintf(stderr, "%i ", blocked[i]);
-//    }
-    fprintf(stderr, "\n");
+    // for initial rescources
+    fprintf(fp, "\n##### RESCOURCES #####\n");
+    fprintf(fp, "     ");
+    for(jj = 0; jj < 20; jj++){
+        fprintf(fp, "R%02i ", jj);
+    }
+
+    fprintf(fp, "\n    ");
+
+    for(jj = 0; jj < 20; jj++){
+        fprintf(fp, "%4d", RDPtr->rescources[jj]);
+    }
+
+    fprintf(fp, "\n");
 
             fclose(fp);
+}
+
+void initTables(){
+
+    // init clock to random
+    time_t t;
+    srand((unsigned) time(&t));
+
+    int randNum;
+
+    // for max table
+    int ii, jj;
+    for(ii = 0; ii < 18; ii++){
+        for(jj = 0; jj < 20; jj++){
+            randNum = (rand() % 3) + 1;
+            RDPtr->max[ii][jj] = randNum;
+        }
+    }
+
+    // for initial rescources
+    for(ii = 0; ii < 20; ii++){
+        randNum = (rand() % 10) + 1;
+        RDPtr->rescources[ii] = randNum;
+    }
 }
 
 void ossClock(){

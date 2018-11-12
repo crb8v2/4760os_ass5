@@ -12,29 +12,21 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <time.h>
 
-
-//#include <time.h>
-//#include <sys/wait.h>
-//#include <sys/time.h>
-//#include <sys/ipc.h>
-//#include <fcntl.h>
-//#include <semaphore.h>
-//#include <sys/stat.h>
-//#include <string.h>
+#include <sys/wait.h>
+#include <sys/time.h>
+#include <sys/ipc.h>
+#include <fcntl.h>
+#include <semaphore.h>
+#include <sys/stat.h>
+#include <string.h>
 
 //shared mem keys, probs not secure in a header, but its here to stay
 #define CLOCK_SHMKEY 123123
 #define RD_SHMKEY 123124
 
-//#################################
-//##### SHARED MEMORY SEGMENT #####
-//#################################
-
-// shared memory
-//      rescources
-//      clock
-
+// ##### SHMEM STRUCTS #####
 // struct for time
 typedef struct {
     unsigned int seconds;
@@ -50,6 +42,7 @@ typedef struct {
 
 } rescourceDescriptor_t;
 
+
 // ##### GLOBALS #####
 // globals for accessing pointers to shared memory
 int sysClockshmid; //holds the shared memory segment id
@@ -58,7 +51,6 @@ int RDshmid;
 rescourceDescriptor_t *RDPtr;
 
 int totalLines = 0; // total lines in log file
-
 
 // allocates shared mem
 void sharedMemoryConfig() {
