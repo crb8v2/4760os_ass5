@@ -35,6 +35,7 @@ typedef struct {
 
 //struct for rescource descriptor
 typedef struct {
+    pid_t pids[18];
     int rescources[20];
     int max[18][20];
     int allocated[18][20];

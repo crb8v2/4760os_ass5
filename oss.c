@@ -8,9 +8,7 @@ void sigint(int);
 static void ALARMhandler();
 void initTables();
 void writeResultsToLog();
-
 void ossClock();
-
 
 int main(int argc, char* argv[]) {
 
@@ -24,13 +22,25 @@ int main(int argc, char* argv[]) {
     // shared memory config
     sharedMemoryConfig();
 
-    // RANDOM INITS FOR TABLE
+    // inits for max matrix and rescources table
     initTables();
+
+    char holder[20] = "Connor";
+
+
+    // ##### FORKS #####
+    if ((RDPtr->pids[0] = fork()) == 0){
+        execl("./user", "user", "connor", holder, NULL);
+    }
+
+    if ((RDPtr->pids[1] = fork()) == 0){
+        execl("./user", "user", "connor", holder,  NULL);
+    }
 
     //####START CLOCK#####
     while(clockStop == 0){
         ossClock();
-//        printf("time seconds:nanoseconds -> %d:%d\n", sysClockshmPtr->seconds, sysClockshmPtr->nanoseconds);
+
     }
 
     // clean shared memory
@@ -41,10 +51,16 @@ int main(int argc, char* argv[]) {
 
 void sigint(int a) {
 
-    // kill open forks
-
     // write to log
     writeResultsToLog();
+
+    // reap children
+    int ii;
+    for(ii = 0; ii < 18; ii++) {
+        while ((RDPtr->pids[ii] = waitpid(-1, NULL, WNOHANG)) > 0) {
+            //printf("child %d terminated\n", RDPtr->pids[ii]);
+        }
+    }
 
     // clean shared memory
     shmdt(sysClockshmPtr);
@@ -59,9 +75,16 @@ void sigint(int a) {
 // alarm magic
 static void ALARMhandler() {
 
-    // kill forks
+    // write to log
+    writeResultsToLog();
 
-    //write to log
+    // reap children
+    int ii;
+    for(ii = 0; ii < 18; ii++) {
+        while ((RDPtr->pids[ii] = waitpid(-1, NULL, WNOHANG)) > 0) {
+            //printf("child %d terminated\n", RDPtr->pids[ii]);
+        }
+    }
 
     // clean shared memory
     shmdt(sysClockshmPtr);
@@ -128,7 +151,7 @@ void initTables(){
     int ii, jj;
     for(ii = 0; ii < 18; ii++){
         for(jj = 0; jj < 20; jj++){
-            randNum = (rand() % 3) + 1;
+            randNum = (rand() % 5) + 1;
             RDPtr->max[ii][jj] = randNum;
         }
     }
@@ -155,5 +178,6 @@ void ossClock(){
 
     //sleep here for easy managing
 //    usleep(200000);
+//    printf("time seconds:nanoseconds -> %d:%d\n", sysClockshmPtr->seconds, sysClockshmPtr->nanoseconds);
 
 }
