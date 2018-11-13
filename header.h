@@ -35,7 +35,12 @@ typedef struct {
 
 //struct for rescource descriptor
 typedef struct {
+    // for managing pids, job of process, and time request iintervals
     pid_t pids[18];
+    int pidJob[18];
+    int nanosRequest[18];
+
+    // tables for safety alg (banker's alg)
     int rescources[20];
     int max[18][20];
     int allocated[18][20];
@@ -52,6 +57,7 @@ int RDshmid;
 rescourceDescriptor_t *RDPtr;
 
 int totalLines = 0; // total lines in log file
+int pidHolder[18] = {};
 
 // allocates shared mem
 void sharedMemoryConfig() {

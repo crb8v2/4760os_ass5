@@ -4,15 +4,17 @@
 
 #include "header.h"
 
+#define MAX_FORKS 3
+#define MAX_RAND 5
+
 void sigint(int);
 static void ALARMhandler();
 void initTables();
 void writeResultsToLog();
 void ossClock();
+void createProcess(int pidHolder[]);
 
 int main(int argc, char* argv[]) {
-
-    int clockStop = 0;
 
     //signal handling config - ctrl-c and timeout
     signal(SIGINT, sigint);
@@ -25,22 +27,10 @@ int main(int argc, char* argv[]) {
     // inits for max matrix and rescources table
     initTables();
 
-    char holder[20] = "Connor";
-
-
-    // ##### FORKS #####
-    if ((RDPtr->pids[0] = fork()) == 0){
-        execl("./user", "user", "connor", holder, NULL);
-    }
-
-    if ((RDPtr->pids[1] = fork()) == 0){
-        execl("./user", "user", "connor", holder,  NULL);
-    }
-
     //####START CLOCK#####
-    while(clockStop == 0){
-        ossClock();
-
+    while(1){
+        ossClock();         // increments clock
+        createProcess(pidHolder);    // creates process every x amount of time
     }
 
     // clean shared memory
@@ -54,11 +44,19 @@ void sigint(int a) {
     // write to log
     writeResultsToLog();
 
-    // reap children
-    int ii;
-    for(ii = 0; ii < 18; ii++) {
-        while ((RDPtr->pids[ii] = waitpid(-1, NULL, WNOHANG)) > 0) {
-            //printf("child %d terminated\n", RDPtr->pids[ii]);
+//    // reap children
+//    int ii;
+//    for(ii = 0; ii < 18; ii++) {
+//        while ((pidHolder[ii] = waitpid(-1, NULL, WNOHANG)) > 0) {
+//            //printf("child %d terminated\n", RDPtr->pids[ii]);
+//        }
+//    }
+
+    // kill open forks
+    for(int ii = 0; ii < 18; ii++){
+        if(pidHolder[ii] != 0){
+            signal(SIGQUIT, SIG_IGN);
+            kill(pidHolder[ii], SIGQUIT);
         }
     }
 
@@ -78,11 +76,19 @@ static void ALARMhandler() {
     // write to log
     writeResultsToLog();
 
-    // reap children
-    int ii;
-    for(ii = 0; ii < 18; ii++) {
-        while ((RDPtr->pids[ii] = waitpid(-1, NULL, WNOHANG)) > 0) {
-            //printf("child %d terminated\n", RDPtr->pids[ii]);
+//    // reap children
+//    int ii;
+//    for(ii = 0; ii < 18; ii++) {
+//        while ((pidHolder[ii] = waitpid(-1, NULL, WNOHANG)) > 0) {
+//            //printf("child %d terminated\n", RDPtr->pids[ii]);
+//        }
+//    }
+
+    // kill open forks
+    for(int ii = 0; ii < 18; ii++){
+        if(pidHolder[ii] != 0){
+            signal(SIGQUIT, SIG_IGN);
+            kill(pidHolder[ii], SIGQUIT);
         }
     }
 
@@ -136,6 +142,24 @@ void writeResultsToLog(){
 
     fprintf(fp, "\n");
 
+    // init max table
+    fprintf(fp, "##### REQUEST TABLE #####\n");
+    fprintf(fp, "     ");
+    for(jj = 0; jj < 20; jj++){
+        fprintf(fp, "R%02i ", jj);
+    }
+
+    fprintf(fp, "\n");
+
+    for(ii = 0; ii < 18; ii++){
+        fprintf(fp, "P%02i:", ii);
+        for(jj = 0; jj < 20; jj++){
+            fprintf(fp, "%4d", RDPtr->request[ii][jj]);
+            totalLines++;
+        }
+        fprintf(fp, "\n");
+    }
+
             fclose(fp);
 }
 
@@ -151,7 +175,7 @@ void initTables(){
     int ii, jj;
     for(ii = 0; ii < 18; ii++){
         for(jj = 0; jj < 20; jj++){
-            randNum = (rand() % 5) + 1;
+            randNum = (rand() % MAX_RAND) + 1;
             RDPtr->max[ii][jj] = randNum;
         }
     }
@@ -180,4 +204,29 @@ void ossClock(){
 //    usleep(200000);
 //    printf("time seconds:nanoseconds -> %d:%d\n", sysClockshmPtr->seconds, sysClockshmPtr->nanoseconds);
 
+}
+
+void createProcess(int pidHolder[]){
+    int ii, jj;
+    for(ii = 0; ii < MAX_FORKS; ii++){
+        if(pidHolder[ii] == 0) {
+
+            // creates random request table
+            for(jj = 0; jj < 20; jj++){
+                RDPtr->request[ii][jj] = (rand() % MAX_RAND) + 1;
+            }
+
+            // get job for process
+
+            // get clock time to make next request
+
+            // fork user
+            if ((pidHolder[ii] = fork()) == 0) {
+                execl("./user", "user", "connor", NULL);
+            }
+
+
+
+        }
+    }
 }
