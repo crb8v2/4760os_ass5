@@ -13,10 +13,11 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
 
 #include <sys/wait.h>
 #include <sys/time.h>
-#include <sys/ipc.h>
 #include <fcntl.h>
 #include <semaphore.h>
 #include <sys/stat.h>
@@ -48,6 +49,12 @@ typedef struct {
 
 } rescourceDescriptor_t;
 
+// struct for message queue
+struct mesg_buffer {
+    long mesg_type;
+    char mesg_text[100];
+} message;
+
 
 // ##### GLOBALS #####
 // globals for accessing pointers to shared memory
@@ -55,10 +62,13 @@ int sysClockshmid; //holds the shared memory segment id
 systemClock_t *sysClockshmPtr; //points to the data structure
 int RDshmid;
 rescourceDescriptor_t *RDPtr;
-
 int totalLines = 0; // total lines in log file
 int pidHolder[18] = {};
 int randomClockTime[18] = {};
+//msg q
+key_t key;
+int msgid;
+
 
 // allocates shared mem
 void sharedMemoryConfig() {
@@ -95,6 +105,14 @@ void sharedMemoryConfig() {
 //    sysClockshmPtr->nanoseconds = 0;
 //    sysClockshmPtr->seconds = 0;
 
+}
+
+void messageQueueConfig(){
+    // ftok to generate unique key
+    key = ftok("progfile", 65);
+    // msgget creates a message queue
+    // and returns identifier
+    msgid = msgget(key, 0666 | IPC_CREAT);
 }
 
 

@@ -16,13 +16,16 @@ void createProcess(int pidHolder[]);
 
 int main(int argc, char* argv[]) {
 
+    // shared memory config
+    sharedMemoryConfig();
+
+    // msgQueue config
+    messageQueueConfig();
+
     //signal handling config - ctrl-c and timeout
     signal(SIGINT, sigint);
     signal(SIGALRM, ALARMhandler);
     alarm(4);
-
-    // shared memory config
-    sharedMemoryConfig();
 
     // inits for max matrix and rescources table
     initTables();
@@ -31,9 +34,26 @@ int main(int argc, char* argv[]) {
     while(1){
         ossClock();         // increments clock
         createProcess(pidHolder);    // creates process every x amount of time
+
+//        // msgrcv to receive message
+//        msgrcv(msgid, &message, sizeof(message), 1, 0);
+//
+//        // display the message
+//        printf("Data Received is : %s \n",
+//               message.mesg_text);
+
+        // check msq
+            //if enough rescources - allocate
+            //if NOT enough rescources - block q
+
+        // if rescources changed
+            // run bakers alg
+
+//            sleep(1);
+
     }
 
-    // clean shared memory
+    // clean shared memory (never gets here)
     shmdt(sysClockshmPtr);
     return 0;
 }
@@ -65,12 +85,13 @@ void sigint(int a) {
     shmctl(sysClockshmid, IPC_RMID, NULL);
     shmdt(RDPtr);
     shmctl(RDshmid, IPC_RMID, NULL);
+    // to destroy the message queue
+    msgctl(msgid, IPC_RMID, NULL);
 
     printf("^C caught\n");
     exit(0);
 }
 
-// alarm magic
 static void ALARMhandler() {
 
     // write to log
@@ -97,12 +118,13 @@ static void ALARMhandler() {
     shmctl(sysClockshmid, IPC_RMID, NULL);
     shmdt(RDPtr);
     shmctl(RDshmid, IPC_RMID, NULL);
+    // to destroy the message queue
+    msgctl(msgid, IPC_RMID, NULL);
 
     printf("Timed out after 4 seconds.\n");
     exit(EXIT_SUCCESS);
 }
 
-// if ctrl-c, write data to log
 void writeResultsToLog(){
 
     FILE *fp = fopen("log.txt", "a+");
@@ -217,7 +239,7 @@ void ossClock(){
     }
 
     //sleep here for easy managing
-//    usleep(200000);
+    usleep(200);
 //    printf("time seconds:nanoseconds -> %d:%d\n", sysClockshmPtr->seconds, sysClockshmPtr->nanoseconds);
 
 }
@@ -257,8 +279,6 @@ void createProcess(int pidHolder[]){
             if ((pidHolder[ii] = fork()) == 0) {
                 execl("./user", stashbox, NULL);
             }
-
-
 
         }
     }

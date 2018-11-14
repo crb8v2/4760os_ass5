@@ -6,10 +6,13 @@
 
 int main(int argc, char* argv[]){
 
-    // shared memory config
+    // ##### shared memory config #####
     sharedMemoryConfig();
 
-    // variables
+    // ##### msgQueue config #####
+    messageQueueConfig();
+
+    // ###### variables #####
     int timeIncrement, rollover;
     int seconds = sysClockshmPtr->seconds;
     int nanoseconds = sysClockshmPtr->nanoseconds;
@@ -19,7 +22,6 @@ int main(int argc, char* argv[]){
     timeIncrement = atoi(argv[0]);
 
     // adjust request timer
-
     if ((nanoseconds + timeIncrement) > 999999999){
         rollover = (nanoseconds + timeIncrement) - 999999999;
         seconds += 1;
@@ -35,6 +37,12 @@ int main(int argc, char* argv[]){
     while(requestTimeReached == 0){
 
         if(sysClockshmPtr->seconds >= seconds && sysClockshmPtr->nanoseconds >= nanoseconds){
+
+            strcpy(message.mesg_text,"A message from the msgQ");
+
+            // msgsnd to send message queue
+            msgsnd(msgid, &message, sizeof(message), 0);
+
             requestTimeReached = 1;
         }
 
