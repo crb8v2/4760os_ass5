@@ -6,26 +6,16 @@
 
 int main(int argc, char* argv[]){
 
-    // init clock to random
-    time_t t;
-    srand((unsigned) time(&t));
-
     // shared memory config
     sharedMemoryConfig();
 
-    // random amount of time to request to OS
-    // rand between 500m and 50m nanos
-    int randTime = (rand() % 500000000) + 50000000;
+    // get argv values for randClockTime sent in
 
-    // generate users job
-    // will request, release, or terminate.
-
+    // case statement of operation to perform
 
     printf("We in this. %d\n", getpid());
 
     while(1);
-
-
 
     // clean shared mem
     shmdt(sysClockshmPtr);
