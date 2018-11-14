@@ -58,6 +58,7 @@ rescourceDescriptor_t *RDPtr;
 
 int totalLines = 0; // total lines in log file
 int pidHolder[18] = {};
+int randomClockTime[18] = {};
 
 // allocates shared mem
 void sharedMemoryConfig() {

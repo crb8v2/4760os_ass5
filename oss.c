@@ -4,7 +4,7 @@
 
 #include "header.h"
 
-#define MAX_FORKS 3
+#define MAX_FORKS 17
 #define MAX_RAND 5
 
 void sigint(int);
@@ -160,7 +160,23 @@ void writeResultsToLog(){
         fprintf(fp, "\n");
     }
 
-            fclose(fp);
+    fprintf(fp, "\n");
+
+    fprintf(fp, "##### JOBS #####\n");
+    for(ii = 0; ii < MAX_FORKS; ii++){
+        fprintf(fp, "%d    ", RDPtr->pidJob[ii]);
+    }
+
+    fprintf(fp, "\n");
+
+    fprintf(fp, "##### TIME INTERVALS #####\n");
+    for(ii = 0; ii < MAX_FORKS; ii++){
+        fprintf(fp, "%d    ", randomClockTime[ii]);
+    }
+
+    fprintf(fp, "\n");
+
+    fclose(fp);
 }
 
 void initTables(){
@@ -217,8 +233,21 @@ void createProcess(int pidHolder[]){
             }
 
             // get job for process
+            //      0 : Terminate
+            //      1 : release one rescource
+            //      2 : request one rescource
+            int randPercent = (rand() % 100) + 1;
+
+            if(randPercent >= 95){          // 5 percent chance terminate
+                RDPtr->pidJob[ii] = 0;
+            }else if (randPercent >= 60){   //35 percent chance release 1
+                RDPtr->pidJob[ii] = 1;
+            }else{                          // 60 percent chance request 1
+                RDPtr->pidJob[ii] = 2;
+            }
 
             // get clock time to make next request
+            randomClockTime[ii] = (rand() % 500000000) + 1000000;
 
             // fork user
             if ((pidHolder[ii] = fork()) == 0) {

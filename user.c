@@ -19,15 +19,7 @@ int main(int argc, char* argv[]){
 
     // generate users job
     // will request, release, or terminate.
-    int randPercent = (rand() % 100) + 1;
 
-    if(randPercent >= 95){          // 5 percent chance
-        //terminate
-    }else if (randPercent >= 60){   //35 percent chance
-        //release
-    }else{                          // 60 percent chance
-        //request +1
-    }
 
     printf("We in this. %d\n", getpid());
 
