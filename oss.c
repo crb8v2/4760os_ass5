@@ -249,9 +249,13 @@ void createProcess(int pidHolder[]){
             // get clock time to make next request
             randomClockTime[ii] = (rand() % 500000000) + 1000000;
 
+            char stashbox[10];
+
+            sprintf(stashbox, "%d", randomClockTime[ii]);
+
             // fork user
             if ((pidHolder[ii] = fork()) == 0) {
-                execl("./user", "user", "connor", NULL);
+                execl("./user", stashbox, NULL);
             }
 
 
