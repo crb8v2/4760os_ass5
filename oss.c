@@ -4,7 +4,7 @@
 
 #include "header.h"
 
-#define MAX_FORKS 17
+#define MAX_FORKS 18
 #define MAX_RAND 5
 
 void sigint(int);
@@ -15,6 +15,10 @@ void ossClock();
 void createProcess(int pidHolder[]);
 void checkMsgQ();
 void processJob(int);
+void logProcDetected(int, int);
+void logBlocked(int, int);
+void logAllocated(int, int);
+void logAllocatedMatrix();
 
 int main(int argc, char* argv[]) {
 
@@ -38,14 +42,11 @@ int main(int argc, char* argv[]) {
         createProcess(pidHolder);   // creates process every x amount of time
         checkMsgQ();                // check for message q for request
 
-
-        // check msq
-            //if enough rescources - allocate
-            //if NOT enough rescources - block q
-
         // if rescources changed
             // run bakers alg
 
+        // print allocated table
+        logAllocatedMatrix();
     }
 
     // clean shared memory (never gets here)
@@ -68,7 +69,8 @@ void sigint(int a) {
 //    }
 
     // kill open forks
-    for(int ii = 0; ii < 18; ii++){
+    int ii;
+    for(ii = 0; ii < 18; ii++){
         if(pidHolder[ii] != 0){
             signal(SIGQUIT, SIG_IGN);
             kill(pidHolder[ii], SIGQUIT);
@@ -101,7 +103,8 @@ static void ALARMhandler() {
 //    }
 
     // kill open forks
-    for(int ii = 0; ii < 18; ii++){
+    int ii;
+    for(ii = 0; ii < 18; ii++){
         if(pidHolder[ii] != 0){
             signal(SIGQUIT, SIG_IGN);
             kill(pidHolder[ii], SIGQUIT);
@@ -192,6 +195,33 @@ void writeResultsToLog(){
     }
 
     fprintf(fp, "\n");
+
+    // init max table
+    fprintf(fp, "##### ALLOCATED #####\n");
+    fprintf(fp, "     ");
+    for(jj = 0; jj < 20; jj++){
+        fprintf(fp, "R%02i ", jj);
+    }
+
+    fprintf(fp, "\n");
+
+    for(ii = 0; ii < 18; ii++){
+        fprintf(fp, "P%02i:", ii);
+        for(jj = 0; jj < 20; jj++){
+            fprintf(fp, "%4d", RDPtr->allocated[ii][jj]);
+            totalLines++;
+        }
+        fprintf(fp, "\n");
+    }
+
+    fprintf(fp, "\n");
+
+    fprintf(fp, "##### BLOCKED QUEUE #####\n");
+    for(ii = 0; ii < MAX_FORKS; ii++){
+        fprintf(fp, "%d    ", blockedQueue[ii]);
+    }
+
+
 
     fclose(fp);
 }
@@ -289,26 +319,123 @@ void checkMsgQ(){
     if(message.mesg_text[0] != '0') {
         pidPass = atoi(message.mesg_text);
         printf("Data Received is : %s \n", message.mesg_text);
+        // do the work of the process
         processJob(pidPass);
     }
 
     strcpy(message.mesg_text, "0");
 }
 
+// process detected, do the work
 void processJob(int pid){
 
     int jobNumber;
+    int procNumber;
+    int rescourceRequestNumber;
 
     //get job number for pid
     int ii;
     for(ii = 0; ii < 18; ii++){
         if(pidHolder[ii] == pid){
             jobNumber = RDPtr->pidJob[ii];
+            procNumber = ii;
+            rescourceRequestNumber = (rand() % 20);
+            // write to log file
+            logProcDetected(procNumber, rescourceRequestNumber);
         }
     }
 
     //case statement on jobNumber
     printf("job right here!!!!!!!!!!!!!!!!!     %d\n", jobNumber);
 
+
+    if(jobNumber == 1 || jobNumber == 2){   // allocate
+
+        //allocate if rescources are avail, if not send to blocked queue
+        if(RDPtr->request[procNumber][rescourceRequestNumber] <= RDPtr->rescources[rescourceRequestNumber]){
+            //update the allocated table
+            RDPtr->allocated[procNumber][rescourceRequestNumber] = RDPtr->request[procNumber][rescourceRequestNumber];
+            //update rescources
+            RDPtr->rescources[rescourceRequestNumber] -= RDPtr->request[procNumber][rescourceRequestNumber];
+            logAllocated(procNumber, rescourceRequestNumber);
+        } else {
+            //assign to blocked queue
+            int ii;
+            int posted = 0;
+            for(ii = 0; ii < 18; ii++){
+                if(blockedQueue[ii] == 0){
+                    blockedQueue[ii] = pid;
+                    posted = 1;
+                    // write blocked to log
+                    logBlocked(procNumber, rescourceRequestNumber);
+                }
+                if(posted == 1){
+                    ii = 18;
+                }
+            }
+        }
+
+    } else if(jobNumber == 0) {             // terminate
+        // kill process
+        // write empty to pid block
+    }
+
+
+}
+
+void logProcDetected(int procNumber, int reqNum){
+
+    FILE *fp = fopen("log.txt", "a+");
+    fprintf(fp, "OS has detected Process P%d requesting R%d at time %d:%d\n",
+            procNumber, reqNum, sysClockshmPtr->seconds, sysClockshmPtr->nanoseconds);
+    fclose(fp);
+
+}
+
+void logAllocated(int procNumber, int reqNum){
+
+    FILE *fp = fopen("log.txt", "a+");
+    fprintf(fp, "OS granting P%d request R%d at time %d:%d\n",
+            procNumber, reqNum, sysClockshmPtr->seconds, sysClockshmPtr->nanoseconds);
+    fclose(fp);
+
+}
+
+void logBlocked(int procNumber, int reqNum){
+
+    FILE *fp = fopen("log.txt", "a+");
+    fprintf(fp, "OS blocking P%d for requesting R%d at time %d:%d\n",
+            procNumber, reqNum, sysClockshmPtr->seconds, sysClockshmPtr->nanoseconds);
+    fclose(fp);
+
+}
+
+void logAllocatedMatrix(){
+
+    FILE *fp = fopen("log.txt", "a+");
+
+    fprintf(fp, "\n");
+
+    // init max table
+    fprintf(fp, "##### ALLOCATED #####\n");
+    fprintf(fp, "     ");
+    for(jj = 0; jj < 20; jj++){
+        fprintf(fp, "R%02i ", jj);
+    }
+
+    fprintf(fp, "\n");
+
+    for(ii = 0; ii < 18; ii++){
+        fprintf(fp, "P%02i:", ii);
+        for(jj = 0; jj < 20; jj++){
+            fprintf(fp, "%4d", RDPtr->allocated[ii][jj]);
+            totalLines++;
+        }
+        fprintf(fp, "\n");
+    }
+
+    fprintf(fp, "\n");
+
+    fclose(fp);
 
 }

@@ -15,11 +15,8 @@
 #include <time.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
-
 #include <sys/wait.h>
 #include <sys/time.h>
-#include <fcntl.h>
-#include <semaphore.h>
 #include <sys/stat.h>
 #include <string.h>
 
@@ -65,6 +62,7 @@ rescourceDescriptor_t *RDPtr;
 int totalLines = 0; // total lines in log file
 int pidHolder[18] = {};
 int randomClockTime[18] = {};
+int blockedQueue[18] = {};
 //msg q
 key_t key;
 int msgid;
