@@ -63,6 +63,7 @@ int totalLines = 0; // total lines in log file
 int pidHolder[18] = {};
 int randomClockTime[18] = {};
 int blockedQueue[18] = {};
+int requestTimeReached = 0;
 //msg q
 key_t key;
 int msgid;
@@ -97,12 +98,6 @@ void sharedMemoryConfig() {
         exit(errno);
     }
 
-    //tests for shared mem
-//    sysClockshmPtr->nanoseconds = 3;
-//    printf("%d\n", sysClockshmPtr->nanoseconds);
-//    sysClockshmPtr->nanoseconds = 0;
-//    sysClockshmPtr->seconds = 0;
-
 }
 
 void messageQueueConfig(){
@@ -112,7 +107,5 @@ void messageQueueConfig(){
     // and returns identifier
     msgid = msgget(key, 0666 | IPC_CREAT);
 }
-
-
 
 #endif //ASS5_HEADER_H

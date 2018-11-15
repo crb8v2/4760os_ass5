@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
 void sigint(int a) {
 
     // write to log
-    writeResultsToLog();
+//    writeResultsToLog();
 
 //    // reap children
 //    int ii;
@@ -92,7 +92,7 @@ void sigint(int a) {
 static void ALARMhandler() {
 
     // write to log
-    writeResultsToLog();
+//    writeResultsToLog();
 
 //    // reap children
 //    int ii;
@@ -279,10 +279,6 @@ void createProcess(int pidHolder[]){
                 RDPtr->request[ii][jj] = (rand() % MAX_RAND) + 1;
             }
 
-            // get job for process
-            //      0 : Terminate
-            //      1 : release one rescource
-            //      2 : request one rescource
             int randPercent = (rand() % 100) + 1;
 
             if(randPercent >= 95){          // 5 percent chance terminate
@@ -348,7 +344,6 @@ void processJob(int pid){
     //case statement on jobNumber
     printf("job right here!!!!!!!!!!!!!!!!!     %d\n", jobNumber);
 
-
     if(jobNumber == 1 || jobNumber == 2){   // allocate
 
         //allocate if rescources are avail, if not send to blocked queue
@@ -377,7 +372,10 @@ void processJob(int pid){
 
     } else if(jobNumber == 0) {             // terminate
         // kill process
+//        kill(pid, SIGKILL);
+        requestTimeReached = 1;
         // write empty to pid block
+        pidHolder[procNumber] = 0;
     }
 
 
@@ -404,21 +402,39 @@ void logAllocated(int procNumber, int reqNum){
 void logBlocked(int procNumber, int reqNum){
 
     FILE *fp = fopen("log.txt", "a+");
+
     fprintf(fp, "OS blocking P%d for requesting R%d at time %d:%d\n",
             procNumber, reqNum, sysClockshmPtr->seconds, sysClockshmPtr->nanoseconds);
+
     fclose(fp);
 
 }
 
 void logAllocatedMatrix(){
 
+    int lines;
+    int ch = 0;
+
     FILE *fp = fopen("log.txt", "a+");
+
+    while(!feof(fp))
+    {
+        ch = fgetc(fp);
+        if(ch == '\n')
+        {
+            lines++;
+        }
+    }
+
+    // print table every 20 lines
+    if(lines % 20 == 0) {
 
     fprintf(fp, "\n");
 
     // init max table
     fprintf(fp, "##### ALLOCATED #####\n");
     fprintf(fp, "     ");
+    int ii, jj;
     for(jj = 0; jj < 20; jj++){
         fprintf(fp, "R%02i ", jj);
     }
@@ -435,6 +451,7 @@ void logAllocatedMatrix(){
     }
 
     fprintf(fp, "\n");
+    }
 
     fclose(fp);
 

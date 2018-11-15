@@ -4,8 +4,6 @@
 
 #include "header.h"
 
-void timeSetup();
-
 int main(int argc, char* argv[]){
 
     // ##### shared memory config #####
@@ -18,7 +16,7 @@ int main(int argc, char* argv[]){
     int timeIncrement, rollover;
     int seconds = sysClockshmPtr->seconds;
     int nanoseconds = sysClockshmPtr->nanoseconds;
-    int requestTimeReached = 0;
+
 
     // get argv values for randClockTime sent in
     timeIncrement = atoi(argv[0]);
@@ -60,8 +58,3 @@ int main(int argc, char* argv[]){
     exit(0);
 }
 
-void timeSetup(){
-
-
-
-}
