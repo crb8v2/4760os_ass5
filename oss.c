@@ -13,6 +13,8 @@ void initTables();
 void writeResultsToLog();
 void ossClock();
 void createProcess(int pidHolder[]);
+void checkMsgQ();
+void processJob(int);
 
 int main(int argc, char* argv[]) {
 
@@ -32,15 +34,10 @@ int main(int argc, char* argv[]) {
 
     //####START CLOCK#####
     while(1){
-        ossClock();         // increments clock
-        createProcess(pidHolder);    // creates process every x amount of time
+        ossClock();                 // increments clock
+        createProcess(pidHolder);   // creates process every x amount of time
+        checkMsgQ();                // check for message q for request
 
-//        // msgrcv to receive message
-//        msgrcv(msgid, &message, sizeof(message), 1, 0);
-//
-//        // display the message
-//        printf("Data Received is : %s \n",
-//               message.mesg_text);
 
         // check msq
             //if enough rescources - allocate
@@ -48,8 +45,6 @@ int main(int argc, char* argv[]) {
 
         // if rescources changed
             // run bakers alg
-
-//            sleep(1);
 
     }
 
@@ -282,4 +277,38 @@ void createProcess(int pidHolder[]){
 
         }
     }
+}
+
+void checkMsgQ(){
+    int pidPass;
+
+    // msgrcv to receive message
+    msgrcv(msgid, &message, sizeof(message), 1, IPC_NOWAIT);
+
+    // display the message
+    if(message.mesg_text[0] != '0') {
+        pidPass = atoi(message.mesg_text);
+        printf("Data Received is : %s \n", message.mesg_text);
+        processJob(pidPass);
+    }
+
+    strcpy(message.mesg_text, "0");
+}
+
+void processJob(int pid){
+
+    int jobNumber;
+
+    //get job number for pid
+    int ii;
+    for(ii = 0; ii < 18; ii++){
+        if(pidHolder[ii] == pid){
+            jobNumber = RDPtr->pidJob[ii];
+        }
+    }
+
+    //case statement on jobNumber
+    printf("job right here!!!!!!!!!!!!!!!!!     %d\n", jobNumber);
+
+
 }

@@ -4,6 +4,8 @@
 
 #include "header.h"
 
+void timeSetup();
+
 int main(int argc, char* argv[]){
 
     // ##### shared memory config #####
@@ -30,15 +32,16 @@ int main(int argc, char* argv[]){
         nanoseconds += timeIncrement;
     }
 
-    // case statement of operation to perform
-
     printf("We in this. %d     %d\n", getpid(), timeIncrement);
 
     while(requestTimeReached == 0){
 
         if(sysClockshmPtr->seconds >= seconds && sysClockshmPtr->nanoseconds >= nanoseconds){
 
-            strcpy(message.mesg_text,"A message from the msgQ");
+            sprintf(message.mesg_text, "%d", getpid());
+
+//            strcpy(message.mesg_text, "A message from the msgQ");
+            message.mesg_type = 1;
 
             // msgsnd to send message queue
             msgsnd(msgid, &message, sizeof(message), 0);
@@ -55,4 +58,10 @@ int main(int argc, char* argv[]){
     shmdt(RDPtr);
 
     exit(0);
+}
+
+void timeSetup(){
+
+
+
 }
