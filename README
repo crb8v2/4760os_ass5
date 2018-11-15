@@ -4,3 +4,36 @@ CS4760 - Operating Systems
 ###################
 Link to Github:
 https://github.com/crb8v2/4760os_ass5
+
+##################
+Usage:
+	./oss
+
+#################
+Description:
+	attached in ass5.pdf
+
+################
+Layout:
+	--OSS--
+	shared mem config
+	msgQ config
+	setup signal handles
+	initiate matrices and tables
+	start clock
+		increment clock
+		create forks
+		check msgQ
+			do job
+		bankers alg on blocked queue
+
+	--USER--
+	shared mem config
+	msgQ config
+	adjust timer
+	make requests at random times
+		write pid to msgQ
+	
+
+###############
+Comments:
