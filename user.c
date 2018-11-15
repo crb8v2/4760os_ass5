@@ -30,7 +30,7 @@ int main(int argc, char* argv[]){
         nanoseconds += timeIncrement;
     }
 
-    printf("We in this. %d     %d\n", getpid(), timeIncrement);
+//    printf("We in this. %d     %d\n", getpid(), timeIncrement);
 
     while(requestTimeReached == 0){
 
@@ -49,7 +49,7 @@ int main(int argc, char* argv[]){
 
     }
 
-    printf("We out this. %d\n", getpid());
+//    printf("We out this. %d\n", getpid());
 
     // clean shared mem
     shmdt(sysClockshmPtr);

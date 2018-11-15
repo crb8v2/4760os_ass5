@@ -19,6 +19,7 @@ void logProcDetected(int, int);
 void logBlocked(int, int);
 void logAllocated(int, int);
 void logAllocatedMatrix();
+void logForceAllocatedMatrix();
 
 int main(int argc, char* argv[]) {
 
@@ -31,7 +32,7 @@ int main(int argc, char* argv[]) {
     //signal handling config - ctrl-c and timeout
     signal(SIGINT, sigint);
     signal(SIGALRM, ALARMhandler);
-    alarm(4);
+    alarm(2);
 
     // inits for max matrix and rescources table
     initTables();
@@ -59,6 +60,7 @@ void sigint(int a) {
 
     // write to log
 //    writeResultsToLog();
+    logForceAllocatedMatrix();
 
 //    // reap children
 //    int ii;
@@ -93,6 +95,7 @@ static void ALARMhandler() {
 
     // write to log
 //    writeResultsToLog();
+    logForceAllocatedMatrix();
 
 //    // reap children
 //    int ii;
@@ -119,7 +122,7 @@ static void ALARMhandler() {
     // to destroy the message queue
     msgctl(msgid, IPC_RMID, NULL);
 
-    printf("Timed out after 4 seconds.\n");
+    printf("Timed out after 2 seconds.\n");
     exit(EXIT_SUCCESS);
 }
 
@@ -264,7 +267,7 @@ void ossClock(){
     }
 
     //sleep here for easy managing
-    usleep(200);
+//    usleep(200);
 //    printf("time seconds:nanoseconds -> %d:%d\n", sysClockshmPtr->seconds, sysClockshmPtr->nanoseconds);
 
 }
@@ -281,7 +284,7 @@ void createProcess(int pidHolder[]){
 
             int randPercent = (rand() % 100) + 1;
 
-            if(randPercent >= 95){          // 5 percent chance terminate
+            if(randPercent >= 91){          // 5 percent chance terminate
                 RDPtr->pidJob[ii] = 0;
             }else if (randPercent >= 60){   //35 percent chance release 1
                 RDPtr->pidJob[ii] = 1;
@@ -314,7 +317,7 @@ void checkMsgQ(){
     // display the message
     if(message.mesg_text[0] != '0') {
         pidPass = atoi(message.mesg_text);
-        printf("Data Received is : %s \n", message.mesg_text);
+//        printf("Data Received is : %s \n", message.mesg_text);
         // do the work of the process
         processJob(pidPass);
     }
@@ -342,8 +345,7 @@ void processJob(int pid){
     }
 
     //case statement on jobNumber
-    printf("job right here!!!!!!!!!!!!!!!!!     %d\n", jobNumber);
-
+//    printf("job right here!!!!!!!!!!!!!!!!!     %d\n", jobNumber);
     if(jobNumber == 1 || jobNumber == 2){   // allocate
 
         //allocate if rescources are avail, if not send to blocked queue
@@ -454,5 +456,38 @@ void logAllocatedMatrix(){
     }
 
     fclose(fp);
+
+}
+
+void logForceAllocatedMatrix() {
+
+    int ii,jj;
+
+    FILE *fp = fopen("log.txt", "a+");
+
+    fprintf(fp, "\n");
+
+    // init max table
+    fprintf(fp, "##### ALLOCATED #####\n");
+    fprintf(fp, "     ");
+    for(jj = 0; jj < 20; jj++){
+        fprintf(fp, "R%02i ", jj);
+    }
+
+    fprintf(fp, "\n");
+
+    for(ii = 0; ii < 18; ii++){
+        fprintf(fp, "P%02i:", ii);
+        for(jj = 0; jj < 20; jj++){
+            fprintf(fp, "%4d", RDPtr->allocated[ii][jj]);
+            totalLines++;
+        }
+        fprintf(fp, "\n");
+    }
+
+    fprintf(fp, "\n");
+
+    fclose(fp);
+
 
 }
